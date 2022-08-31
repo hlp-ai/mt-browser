@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "yimt-chrome",
-    "version": "1.0",
+    "name": "yimt-browser",
+    "version": "1.0.22",
     "description": "translate html via yimt service",
     "icons": {
         "48": "icons/icon-48.png"
@@ -14,7 +14,7 @@
             "48": "icons/icon-48.png"
         },
         "default_popup": "popup.html",
-        "default_title": "yimt-chrome"
+        "default_title": "yimt-browser"
     },
     "permissions": [
         "activeTab",
