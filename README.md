@@ -4,5 +4,5 @@ MT Browser Plugin
 ## Features
 + Support Chrome and Edge browsers
 
-## Reference
+## References
 1. https://github.com/lawl/translate
