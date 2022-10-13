@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             tl: document.getElementById('translateto').value
         });
         console.log("rcv'd ", resp);
+        window.close()
     })
 
     document.getElementById('settingsbtn').addEventListener('click', function () {
