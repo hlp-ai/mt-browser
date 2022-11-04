@@ -1,0 +1,81 @@
+<meta charset=utf-8>
+
+<style type="text/css">
+    html,
+    body {
+        padding-left: 5px;
+        padding-right: 15px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        font-size: 11pt;
+        width: 280px !important;
+        max-height: 340px;
+        overflow: hidden;
+    }
+
+    .navbar {
+        width: 100%;
+        padding-bottom: 5px;
+    }
+
+    .clickable {
+        cursor: pointer;
+    }
+
+    #dotranslate {
+        width: 48%;
+        height: 36px;
+        padding: 2px;
+        float: left;
+    }
+
+    #goback {
+        width: 48%;
+        height: 36px;
+        padding: 2px;
+        float: right;
+        color: black;
+        background-color: transparent;
+    }
+</style>
+
+<link rel="stylesheet" href="vendor/picocss/pico.min.css">
+</link>
+
+<div class="view view_main">
+    <div class="navbar" style="text-align:right;">
+        <span class="clickable" id="settingsbtn">
+            <img src="vendor/feathericons/settings.svg" alt="settings" />
+        </span>
+    </div>
+    <div class="input-line">
+        <label for="translatefrom">
+            网页语言
+        </label>
+        <select id="translatefrom" style="width:100%;height:36px;border:1px solid rgb(204, 204, 204);padding:2px;">
+        </select>
+    </div>
+    <div class="input-line">
+        <label for="translateto">
+            目标语言
+        </label>
+        <select id="translateto" style="width:100%;height:36px;border:1px solid #ccc;padding:2px;">
+        </select>
+    </div>
+    <!-- <button id="doTranslate" style="width:100%;height:36px;padding:2px;">翻译网页</button> -->
+    <button id="doTranslate" style="width:48%;height:36px;padding:2px;float:left;">翻译网页</button>
+    <button id="goback" style="width:48%;height:36px;padding:2px;float:right;">恢复网页</button>
+</div>
+
+<div class="view view_settings">
+    <div class="navbar" style="text-align:left; ">
+        <span class="clickable btnToMainView">
+            <img src="vendor/feathericons/arrow-left.svg" alt="back" />
+        </span>
+    </div>
+    <label>API端点 <input type="text" class="setting" data-storename="api-endpoint" /></label>
+    <div style="text-align: right; margin-top:10px;">
+        <button id="saveSettings" style="width:100%;height:36px;padding:2px;">保存设置</button>
+    </div>
+</div>
+<script type="text/javascript" src="dic_popup.js"></script>
