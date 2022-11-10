@@ -7,9 +7,12 @@
     "48": "icons/icon-48.png"
   },
   "permissions": [
+    "storage",
+    "webRequest",
     "activeTab",
     "tabs",
-    "<all_urls>"
+    "<all_urls>",
+    "scripting"
   ],
   "browser_action": {
     "default_icon": "icons/icon-48.png",
