@@ -77,7 +77,7 @@ function APIQuery(method, route, body) {
 
 
 function getSettings(cb) {
-    chrome.storage.sync.get('settings', function (data) {
+    chrome.storage.local.get('settings', function (data) {
         if (!data.settings) {
             let defaultsettings = {
                 'api-endpoint': 'http://api.fanyi.baidu.com/api/trans/vip/translate'
