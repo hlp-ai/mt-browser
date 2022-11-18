@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
             collection[s.dataset['storename']] = s.value;
         }
-        chrome.storage.sync.set({ settings: collection });
+        chrome.storage.local.set({ settings: collection });
     })
 })
 
