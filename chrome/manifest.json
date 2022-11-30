@@ -28,6 +28,8 @@
         "default_title": "yimt-browser"
     },
     "permissions": [
+        "contextMenus",
+        "tabs",
         "activeTab",
         "storage",
         "scripting",

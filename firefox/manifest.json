@@ -12,7 +12,8 @@
     "activeTab",
     "tabs",
     "<all_urls>",
-    "scripting"
+    "scripting",
+    "contextMenus"
   ],
   "browser_action": {
     "default_icon": "icons/icon-48.png",
@@ -30,6 +31,7 @@
         "<all_urls>"
       ],
       "js": [
+        "lib/jquery-1.11.3.min.js",
         "content-script.js"
       ],
       "run_at": "document_start"
