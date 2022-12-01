@@ -27,19 +27,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     setView('main')
 
     document.getElementById('doTranslate').addEventListener('click', async function () {
-        /*
-        await chrome.tabs.executeScript({
-            code: 'var __args=' + JSON.stringify(
-                {
-                    sl: document.getElementById('translatefrom').value,
-                    tl: document.getElementById('translateto').value
-                })
-        });
-        await chrome.tabs.executeScript({ file: "translate.js" });
-        */
-        /*
-         */
-        // window.close();
         console.log("sending msg")
         let resp = await chrome.runtime.sendMessage({
             action: "inject",
@@ -49,21 +36,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log("rcv'd ", resp);
         window.close()
     })
-
-    // document.getElementById('goback').addEventListener('click', async function () {
-    //     console.log("sending msg")
-    //     function sendMessageToContentScript(message, callback) {
-    //         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    //             chrome.tabs.sendMessage(tabs[0].id, message, function (response) {
-    //                 if (callback) callback(response);
-    //             });
-    //         });
-    //     }
-    //     sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
-    //         console.log('来自content的回复：' + response);
-    //     });
-    //     console.log("rcv'd ", resp);
-    // })
 
     document.getElementById('settingsbtn').addEventListener('click', function () {
         setView('settings')
@@ -154,7 +126,7 @@ function getSettings(cb) {
     chrome.storage.local.get('settings', function (data) {
         if (!data.settings) {
             let defaultsettings = {
-                'api-endpoint': 'http://api.fanyi.baidu.com/api/trans/vip/translate'
+                'api-endpoint': 'http://127.0.0.1:5555/'
             }
             cb({ settings: defaultsettings })
             return

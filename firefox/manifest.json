@@ -31,17 +31,9 @@
         "<all_urls>"
       ],
       "js": [
-        "lib/jquery-1.11.3.min.js",
         "content-script.js"
       ],
       "run_at": "document_start"
     }
-  ],
-  "web_accessible_resources": [
-    "images/dic.png",
-    "images/laba.png",
-    "images/love-active.png",
-    "images/love-inactive.png"
-  ],
-  "content_security_policy": "script-src 'self'; object-src 'self'; media-src 'self' 'https://citydomain.com/'"
+  ]
 }

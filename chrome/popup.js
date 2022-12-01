@@ -27,18 +27,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     setView('main')
 
     document.getElementById('doTranslate').addEventListener('click', async function () {
-        /*
-        await chrome.tabs.executeScript({
-            code: 'var __args=' + JSON.stringify(
-                {
-                    sl: document.getElementById('translatefrom').value,
-                    tl: document.getElementById('translateto').value
-                })
-        });
-        await chrome.tabs.executeScript({ file: "translate.js" });
-        */
-        /*
-         */
         console.log("sending msg")
         let resp = await chrome.runtime.sendMessage({
             action: "inject",

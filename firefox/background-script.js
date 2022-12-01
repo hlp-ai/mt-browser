@@ -68,17 +68,6 @@ browser.runtime.onMessage.addListener(
 
 );
 
-// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-//     console.log('request service')
-//     if (request.action === 'goback') {
-//         console.log('refresh')
-//         console.log(request.url)
-//         window.location.reload()
-//         sendResponse(null)
-
-//     }
-// })
-
 
 function APIQuery(method, route, body) {
 
@@ -106,7 +95,7 @@ function getSettings(cb) {
     chrome.storage.local.get('settings', function (data) {
         if (!data.settings) {
             let defaultsettings = {
-                'api-endpoint': 'http://api.fanyi.baidu.com/api/trans/vip/translate'
+                'api-endpoint': 'http://127.0.0.1:5555/'
             }
             cb({ settings: defaultsettings })
             return

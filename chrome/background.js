@@ -165,18 +165,6 @@ async function doTranslate(sl, tl) {
         return detectedlang
     }
 
-    // the docs *say* runtime.sendMessage does promises,
-    // but it doesnt?! so we just wrap it so we can await it.
-    /*
-    function sendMessage(message) {
-        return new Promise(function (resolve, reject) {
-            chrome.runtime.sendMessage(message, function (resp) {
-                resolve(resp)
-            })
-        })
-    }
-    */
-
     async function translateNodes(allNodes, sl, tl) {
         for (let i = 0; i < allNodes.length; i++) {
             let node = allNodes[i]
