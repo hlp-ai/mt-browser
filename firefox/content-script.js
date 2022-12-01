@@ -3,4 +3,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         console.log('refresh')
         window.location.reload()
     }
+    if (request.todo == "translate") {
+        alert(request.result)
+    }
 })

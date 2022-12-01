@@ -1,5 +1,31 @@
 var chrome = chrome || browser
 
+var menuItem = {
+    "id": "translate",
+    "title": "翻译",
+    "contexts": ["selection"]
+}
+chrome.contextMenus.create(menuItem);
+
+chrome.contextMenus.onClicked.addListener(function (clickData) {
+    if (clickData.menuItemId == 'translate' && clickData.selectionText) {
+        // clickData.menuItemId : 被点击的菜单选项卡id
+        // clickData.selectionText: 选中的内容
+        // const res = fetch("http://api.fanyi.baidu.com/api/trans/vip/translate",
+        //     {
+        //         method: "POST",
+        //         body: JSON.stringify({ q: request.Word, source: request.source, target: request.target, format: request.text }),
+        //         headers: { "Content-Type": "application/json" }
+        //     }
+        // )
+        // trans_json = res.json()
+        transresult = clickData.selectionText
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: transresult })//暂时直接用·所取的单词作为输出测试
+            //chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
+        })
+    }
+})
 
 chrome.runtime.onMessage.addListener(
 
