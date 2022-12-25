@@ -30,7 +30,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         var btn = document.createElement("div");
         btn.style = "text-align:right;padding:5px;height:45px;";
         div.appendChild(btn);
-        btn.innerHTML = '<button style="background-color:#6495ed;width:20%;height:36px;padding:2px;float:right;">确定<tton>';
+        btn.innerHTML = '<button style="background-color:#6495ed;width:20%;height:36px;padding:2px;float:right;">确定</button>';
         var qd = btn.children[0];
         qd.onclick = function () {
             db.body.removeChild(box);
