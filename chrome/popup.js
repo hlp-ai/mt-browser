@@ -33,6 +33,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             sl: document.getElementById('translatefrom').value,
             tl: document.getElementById('translateto').value
         });
+        let source_lang = document.getElementById('translatefrom').value;
+        if (source_lang == "ar") {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, { todo: "change" })
+            })
+        }
         console.log("rcv'd ", resp);
         window.close()
     })

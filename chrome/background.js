@@ -7,13 +7,27 @@ var menuItem = {
 }
 chrome.contextMenus.create(menuItem);
 
+chrome.contextMenus.create(menuItem = {
+    "id": "zh",
+    "title": "中文",
+    "contexts": ["selection"],
+    "parentId": "translate"
+})
+
+chrome.contextMenus.create(menuItem = {
+    "id": "en",
+    "title": "英文",
+    "contexts": ["selection"],
+    "parentId": "translate"
+})
+
 chrome.contextMenus.onClicked.addListener(async function (clickData) {
-    if (clickData.menuItemId == 'translate' && clickData.selectionText) {
+    if (clickData.selectionText) {
         // clickData.menuItemId : 被点击的菜单选项卡id
         // clickData.selectionText: 选中的内容
         transword = clickData.selectionText
-        source_lang = 'en'
-        target_lang = 'zh'
+        source_lang = 'auto'
+        target_lang = clickData.menuItemId
         const res = await fetch("http://127.0.0.1:5555/translate", {
             method: "POST",
             body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text" }),
@@ -22,11 +36,12 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
         transresult = clickData.selectionText
         trans_json = await res.json()
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: transresult })//暂时直接用所取的单词作为输出测试
+            // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: target_lang })//暂时直接用所取的单词作为输出测试
             chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
         })
     }
 })
+
 
 chrome.runtime.onMessage.addListener(
 
@@ -107,7 +122,6 @@ function getSettings(cb) {
 
 
 async function doTranslate(sl, tl) {
-
     if (window.__ltActive) {
         return
     }

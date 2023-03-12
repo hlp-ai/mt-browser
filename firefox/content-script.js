@@ -36,4 +36,8 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
             db.body.removeChild(box);
         }
     }
+    if (request.todo == 'change') {
+        alert('ar_lang');
+        document.body.style.direction = "ltr";
+    }
 })
