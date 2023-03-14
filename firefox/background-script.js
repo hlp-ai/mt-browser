@@ -7,13 +7,27 @@ var menuItem = {
 }
 chrome.contextMenus.create(menuItem);
 
+chrome.contextMenus.create(menuItem = {
+    "id": "zh",
+    "title": "中文",
+    "contexts": ["selection"],
+    "parentId": "translate"
+})
+
+chrome.contextMenus.create(menuItem = {
+    "id": "en",
+    "title": "英文",
+    "contexts": ["selection"],
+    "parentId": "translate"
+})
+
 chrome.contextMenus.onClicked.addListener(async function (clickData) {
     if (clickData.menuItemId == 'translate' && clickData.selectionText) {
         // clickData.menuItemId : 被点击的菜单选项卡id
         // clickData.selectionText: 选中的内容
         transword = clickData.selectionText
-        source_lang = 'en'
-        target_lang = 'zh'
+        source_lang = 'auto'
+        target_lang = clickData.menuItemId
         const res = await fetch("http://127.0.0.1:5555/translate", {
             method: "POST",
             body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text" }),
