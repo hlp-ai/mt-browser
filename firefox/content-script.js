@@ -26,6 +26,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         condiv.innerHTML = res;
         condiv.style =
             "overflow:auto;line-height:24px;font-size:16px;border-bottom:1px solid #ccc;text-indent: 2rem;padding:5px;height:95px;";
+        condiv.setAttribute('dir', 'ltr');
         div.appendChild(condiv);
         var btn = document.createElement("div");
         btn.style = "text-align:right;padding:5px;height:45px;";
@@ -37,7 +38,6 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         }
     }
     if (request.todo == 'change') {
-        alert('ar_lang');
         document.body.style.direction = "ltr";
     }
 })
