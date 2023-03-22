@@ -6,6 +6,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
     }
     if (request.todo == "translate") {
         //alert(request.result)
+        //document.body.style.direction = "ltr";
         var res = request.result
         var db = document;
         var w = window;
@@ -30,6 +31,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         div.appendChild(condiv);
         var btn = document.createElement("div");
         btn.style = "text-align:right;padding:5px;height:45px;";
+        condiv.setAttribute('dir', 'ltr');
         div.appendChild(btn);
         btn.innerHTML = '<button style="background-color:#6495ed;width:20%;min-width:15%;height:36px;padding:2px;float:right;">确定</button>';
         var qd = btn.children[0];
@@ -38,7 +40,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         }
     }
     if (request.todo == 'change') {
-        alert('ar_lang');
         document.body.style.direction = "ltr";
     }
 })

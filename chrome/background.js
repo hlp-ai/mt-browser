@@ -7,18 +7,19 @@ var menuItem = {
 }
 chrome.contextMenus.create(menuItem);
 
-chrome.contextMenus.create(menuItem = {
-    "id": "zh",
-    "title": "中文",
-    "contexts": ["selection"],
-    "parentId": "translate"
-})
-
-chrome.contextMenus.create(menuItem = {
-    "id": "en",
-    "title": "英文",
-    "contexts": ["selection"],
-    "parentId": "translate"
+chrome.runtime.onInstalled.addListener(async function () {
+    let resp = await APIQuery('GET', 'languages', null)
+    console.log(resp)
+    console.log(typeof (resp))
+    for (lang of resp) {
+        var menuItem = {
+            "id": lang.code,
+            "title": lang.cname,
+            "contexts": ["selection"],
+            "parentId": "translate"
+        }
+        chrome.contextMenus.create(menuItem);
+    }
 })
 
 chrome.contextMenus.onClicked.addListener(async function (clickData) {
@@ -48,6 +49,11 @@ chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         console.log('request service')
         if (request.action === "translate") {
+            if (request.sl === "ar") {
+                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, { todo: "change" })
+                })
+            }
             let jsn = APIQuery('POST', 'translate',
                 JSON.stringify({
                     q: request.text,
