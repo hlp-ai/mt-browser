@@ -29,16 +29,39 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
         transword = clickData.selectionText
         source_lang = 'auto'
         target_lang = clickData.menuItemId
-        const res = await fetch("http://127.0.0.1:5555/translate", {
-            method: "POST",
-            body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text" }),
-            headers: { "Content-Type": "application/json" }
-        });
-        transresult = clickData.selectionText
-        trans_json = await res.json()
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: transresult })//暂时直接用所取的单词作为输出测试
-            chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
+        // const res = await fetch("http://127.0.0.1:5555/translate", {
+        //     method: "POST",
+        //     body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text" }),
+        //     headers: { "Content-Type": "application/json" }
+        // });
+        // transresult = clickData.selectionText
+        // trans_json = await res.json()
+        // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        //     // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: transresult })//暂时直接用所取的单词作为输出测试
+        //     chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
+        // })
+        var ak;
+        chrome.storage.local.get('settings', async function (data) {
+            if (!data.settings) {
+                var defaultsettings = {
+                    'api-endpoint': 'http://127.0.0.1:5555/',
+                    'api-key': 'yi_api_key'
+                }
+                data.settings = defaultsettings;
+            }
+            ak = data.settings['api-key'];
+            console.log(ak);
+            const res = await fetch("http://127.0.0.1:5555/translate", {
+                method: "POST",
+                body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
+                headers: { "Content-Type": "application/json" }
+            });
+            transresult = clickData.selectionText
+            trans_json = await res.json()
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.api_key })//暂时直接用所取的单词作为输出测试
+                chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.api_key })
+            })
         })
     }
 })
@@ -58,7 +81,8 @@ browser.runtime.onMessage.addListener(
                     q: request.text,
                     source: request.sl,
                     target: request.tl,
-                    format: request.type
+                    format: request.type,
+                    api_key: request.ak
                 })).then(function (jsn) {
                     sendResponse({ type: request.type, text: jsn.translatedText });
                 })
@@ -72,7 +96,7 @@ browser.runtime.onMessage.addListener(
                     {
                         target: { tabId: tabId[0].id },
                         func: doTranslate,
-                        args: [request.sl, request.tl],
+                        args: [request.sl, request.tl, request.api_key],
                     },
                 );
                 sendResponse(null)
@@ -116,7 +140,8 @@ function getSettings(cb) {
     chrome.storage.local.get('settings', function (data) {
         if (!data.settings) {
             let defaultsettings = {
-                'api-endpoint': 'http://127.0.0.1:5555/'
+                'api-endpoint': 'http://127.0.0.1:5555/',
+                'api-key': 'yi_api_key'
             }
             cb({ settings: defaultsettings })
             return
@@ -126,7 +151,7 @@ function getSettings(cb) {
 }
 
 
-async function doTranslate(sl, tl) {
+async function doTranslate(sl, tl, ak) {
 
     if (window.__ltActive) {
         return
@@ -427,7 +452,7 @@ async function doTranslate(sl, tl) {
     }
 
     async function translate(txt, type, sl, tl) {
-        let resp = await browser.runtime.sendMessage({ action: "translate", type: type, text: txt, sl: sl, tl: tl })
+        let resp = await browser.runtime.sendMessage({ action: "translate", type: type, text: txt, sl: sl, tl: tl, ak: ak })
         return resp
     }
 

@@ -5,8 +5,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         window.location.reload()
     }
     if (request.todo == "translate") {
-        //alert(request.result)
-        //document.body.style.direction = "ltr";
         var res = request.result
         var db = document;
         var w = window;
@@ -41,6 +39,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
     }
     if (request.todo == 'change') {
         document.body.style.direction = "ltr";
+        document.getElementsByClassName("js-dialog").style.direction = "ltr";
     }
 })
 
