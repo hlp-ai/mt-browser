@@ -39,8 +39,9 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 data.settings = defaultsettings;
             }
             ak = data.settings['api-key'];
-            console.log(ak);
-            const res = await fetch("http://127.0.0.1:5555/translate", {
+            endpoint = data.settings['api-endpoint']
+            console.log(endpoint);
+            const res = await fetch(endpoint + "translate", {
                 method: "POST",
                 body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
                 headers: { "Content-Type": "application/json" }
@@ -52,18 +53,6 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
             })
         })
-        // console.log(ak);
-        // const res = await fetch("http://127.0.0.1:5555/translate", {
-        //     method: "POST",
-        //     body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
-        //     headers: { "Content-Type": "application/json" }
-        // });
-        // transresult = clickData.selectionText
-        // trans_json = await res.json()
-        // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        //     chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.api_key })//暂时直接用所取的单词作为输出测试
-        //     // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
-        // })
     }
 })
 
