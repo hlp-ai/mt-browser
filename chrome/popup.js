@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         let resp = await chrome.runtime.sendMessage({
             action: "inject",
             sl: document.getElementById('translatefrom').value,
-            tl: document.getElementById('translateto').value
+            tl: document.getElementById('translateto').value,
+            api_key: document.getElementById('api_key').value
         });
         console.log("rcv'd ", resp);
         window.close()
@@ -127,7 +128,8 @@ function getSettings(cb) {
     chrome.storage.sync.get('settings', function (data) {
         if (!data.settings) {
             let defaultsettings = {
-                'api-endpoint': 'http://127.0.0.1:5555/'
+                'api-endpoint': 'http://127.0.0.1:5555/',
+                'api-key': 'yi_api_key'
             }
             cb({ settings: defaultsettings })
             return
