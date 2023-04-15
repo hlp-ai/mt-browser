@@ -26,27 +26,28 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
     if (clickData.selectionText) {
         // clickData.menuItemId : 被点击的菜单选项卡id
         // clickData.selectionText: 选中的内容
-        transword = clickData.selectionText
-        source_lang = 'auto'
-        target_lang = clickData.menuItemId
-        var ak;
+        var transword = clickData.selectionText
+        var source_lang = 'auto'
+        var target_lang = clickData.menuItemId
         chrome.storage.local.get('settings', async function (data) {
             if (!data.settings) {
                 var defaultsettings = {
                     'api-endpoint': 'http://127.0.0.1:5555/',
-                    'api-key': 'yi_api_key'
+                    'api-key': ""
                 }
                 data.settings = defaultsettings;
             }
-            ak = data.settings['api-key'];
-            endpoint = data.settings['api-endpoint']
+            var ak = data.settings['api-key'];
+            if(typeof ak === 'undefined'){
+                ak = "";
+            }
+            var endpoint = data.settings['api-endpoint'];
             console.log(ak);
             const res = await fetch(endpoint+"translate", {
                 method: "POST",
                 body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
                 headers: { "Content-Type": "application/json" }
             });
-            transresult = clickData.selectionText
             trans_json = await res.json()
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.api_key })//暂时直接用所取的单词作为输出测试
@@ -131,7 +132,7 @@ function getSettings(cb) {
         if (!data.settings) {
             let defaultsettings = {
                 'api-endpoint': 'http://127.0.0.1:5555/',
-                'api-key': 'yi_api_key'
+                'api-key': ""
             }
             cb({ settings: defaultsettings })
             return
