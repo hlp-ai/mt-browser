@@ -41,5 +41,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
         document.body.style.direction = "ltr";
         document.getElementsByClassName("js-dialog").style.direction = "ltr";
     }
+    if(request.todo == 'failed'){
+        alert(request.message)
+    }
 })
 

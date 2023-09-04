@@ -1,5 +1,22 @@
 var chrome = chrome || browser
 
+let notificationShown = false;
+function showErrorNotification(type, message) {
+    if(!notificationShown){
+        notificationShown = true;
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: "icons/icon-48.png",
+            title: type,
+            message: message
+        }, function () {
+            setTimeout(function () {
+                notificationShown = false;
+            }, 2000);
+        });
+    }
+}
+
 var menuItem = {
     "id": "translate",
     "title": "翻译",
@@ -47,12 +64,23 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 method: "POST",
                 body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
                 headers: { "Content-Type": "application/json" }
+            }).catch(function (err) {
+                console.log(err)
+                // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                //     chrome.tabs.sendMessage(tabs[0].id, { todo: "failed" ,message: err.message})
+                // })
+                showErrorNotification("connect failed", "Translation error: " + err);
             });
-            trans_json = await res.json()
-            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                // chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.api_key })//暂时直接用所取的单词作为输出测试
-                chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText})
-            })
+            console.log(res);
+            trans_json = await res.json();
+            if (trans_json.error) {
+                showErrorNotification("translate error","Translation failed: " + trans_json.error);
+            } else {
+                console.log(trans_json.translatedText)
+                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
+                })
+            }
         })
     }
 })
@@ -75,9 +103,14 @@ browser.runtime.onMessage.addListener(
                     format: request.type,
                     api_key: request.ak
                 })).then(function (jsn) {
-                    sendResponse({ type: request.type, text: jsn.translatedText });
-                })
-
+                    // sendResponse({ type: request.type, text: jsn.translatedText });
+                    if(jsn.error){
+                        showErrorNotification("translate fail", "Translation failed: " + jsn.error);
+                    }else{
+                        sendResponse({ type: request.type, text: jsn.translatedText });
+                    }
+                })    
+            return true;
         }
         if (request.action === "inject") {
 
@@ -121,6 +154,7 @@ function APIQuery(method, route, body) {
                 })
             }).catch(function (err) {
                 reject(err)
+                showErrorNotification("request failed", "Translation failed: " + err);
             });
         })
     })

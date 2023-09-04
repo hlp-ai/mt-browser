@@ -33,6 +33,7 @@
         "activeTab",
         "storage",
         "scripting",
-        "webRequest"
+        "webRequest",
+        "notifications"
     ]
 }
