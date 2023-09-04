@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
             console.log('来自content的回复：' + response);
         });
-        console.log("rcv'd ", resp);
     })
 
     document.getElementById('settingsbtn').addEventListener('click', function () {

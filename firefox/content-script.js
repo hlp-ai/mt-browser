@@ -40,4 +40,7 @@ browser.runtime.onMessage.addListener(function (request, sender, sendMessage) {
     if (request.todo == 'change') {
         document.body.style.direction = "ltr";
     }
+    if(request.todo == 'failed'){
+        alert(request.message)
+    }
 })
