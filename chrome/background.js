@@ -55,12 +55,15 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 }
                 data.settings = defaultsettings;
             }
-            console.log(data)
+            console.log(data.settings['api-endpoint']);
             var ak = data.settings['api-key'];
             if(typeof ak === 'undefined'){
                 ak = ""
             }
             var endpoint = data.settings['api-endpoint'];
+            if (endpoint.charAt(endpoint.length - 1) !== '/') {
+                endpoint += '/';
+            }
             const res = await fetch(endpoint + "translate", {
                 method: "POST",
                 body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
@@ -176,7 +179,12 @@ function getSettings(cb) {
             cb({ settings: defaultsettings })
             return
         }
-        cb(data)
+        let settings = data.settings;
+        if (!settings['api-endpoint'].endsWith('/')) {
+            settings['api-endpoint'] += '/';
+        }
+        // cb(data)
+        cb({ settings: settings });
     })
 }
 

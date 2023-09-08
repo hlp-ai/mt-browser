@@ -59,6 +59,9 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 ak = "";
             }
             var endpoint = data.settings['api-endpoint'];
+            if (endpoint.charAt(endpoint.length - 1) !== '/') {
+                endpoint += '/';
+            }
             console.log(ak);
             const res = await fetch(endpoint+"translate", {
                 method: "POST",
@@ -171,7 +174,12 @@ function getSettings(cb) {
             cb({ settings: defaultsettings })
             return
         }
-        cb(data)
+        let settings = data.settings;
+        if (!settings['api-endpoint'].endsWith('/')) {
+            settings['api-endpoint'] += '/';
+        }
+        // cb(data)
+        cb({ settings: settings });
     })
 }
 

@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
             console.log('来自content的回复：' + response);
         });
+        window.close();
     })
 
     document.getElementById('settingsbtn').addEventListener('click', function () {
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             collection[s.dataset['storename']] = s.value;
         }
         chrome.storage.sync.set({ settings: collection });
+        setView('main');
     })
 })
 
@@ -137,6 +139,11 @@ function getSettings(cb) {
             cb({ settings: defaultsettings })
             return
         }
-        cb(data)
+        let settings = data.settings;
+        if (!settings['api-endpoint'].endsWith('/')) {
+            settings['api-endpoint'] += '/';
+        }
+        // cb(data)
+        cb({ settings: settings });
     })
 }
