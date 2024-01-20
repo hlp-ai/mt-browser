@@ -3,6 +3,7 @@ var chrome = chrome || browser
 document.addEventListener('DOMContentLoaded', async function () {
 
     try {
+        request_ad();
         let resp = await APIQuery('GET', 'languages', null)
         let trTo = document.getElementById('translateto')
         let trFrom = document.getElementById('translatefrom')
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (e) { /*maybe display some UI? don't know*/ }
 
     setView('main')
-    request_ad();
+    // request_ad();
 
     document.getElementById('doTranslate').addEventListener('click', async function () {
         console.log("sending msg")
@@ -151,19 +152,15 @@ function getSettings(cb) {
 
 // 插件端请求广告，暂时放入请求url的链接
 async function request_ad(){
-    // END_POINT = 'http://127.0.0.1:5555/'
-    // const res = await fetch(END_POINT + "/request_ad", {
-    //     method: "POST",
-    //     body: JSON.stringify({platform:"plugin"}),
-    //     headers: { "Content-Type": "application/json" },
-    //     }
-    // );
-    // response_json = await res.json();
-    // ad_id = response_json.ad_id;
-    // type = response_json.type;
-    // content = response_json.content;
-    // url = response_json.url;
-    url_test = "https://www.baidu.com/"
-    // console.log(ad_id, type, content, url);
-    document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url_test + "' target='_blank'>" + "点击了解详情" + "</a>";
+    const res = await APIQuery('POST', 'request_ad', JSON.stringify({platform:"plugin"}));
+    console.log(res);
+
+    ad_id = res.ad_id;
+    type = res.type;
+    content = res.content;
+    url = res.url;
+
+    console.log(ad_id, type, content, url);
+    document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
+    document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
 }
