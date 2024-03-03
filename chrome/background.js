@@ -248,65 +248,6 @@ async function doTranslate(sl, tl, ak) {
         return detectedlang
     }
 
-    // async function translateNodes(allNodes, sl, tl) {
-    //     for (let i = 0; i < allNodes.length; i++) {
-    //         let node = allNodes[i]
-
-    //         if (node.innerHTML == node.innerText) {
-    //             /*
-    //             sites seem to often have some piece of text that is repeating frequently
-    //             think a "report" button under every post. Cache translations for small
-    //             text fragments like that instead of querying the translation server every time.
-                
-    //             the limitation of checking <= 100 is entirely arbitrary. i just want to avoid caching for
-    //             large text, since the longer the text, the lower the likelyhood of it repeating.
-
-    //             same goes for the HTML below with the same logic, but we bump the max length to 200,
-    //             since there might be some HTML markup like an 'a' tag in there. again, 200 was chosen arbitrarily.
-    //             Both of these numbers can probably be optimized by measuring what would make sense instead of
-    //             pulling them from where the sun don't shine.
-
-    //             We also probably should implement some kind of LRU eviction so it doesn't grow infinitely...
-    //             */
-    //             if (node.innerText.length <= 100) {
-    //                 if (__translationCache[node.innerText]) {
-    //                     node.innerText = __translationCache[node.innerText]
-    //                     setNodeTranslated(node)
-    //                     continue
-    //                 }
-    //             }
-
-    //             let resp = await translate(node.innerText, 'text', sl, tl)
-    //             if (node.innerText.length <= 100) {
-    //                 __translationCache[node.innerText] = resp.text
-    //             }
-    //             node.innerText = resp.text
-    //             setNodeTranslated(node)
-    //         } else {
-    //             if (node.innerHTML.length <= 200) {
-    //                 if (__translationCache[node.innerHTML]) {
-    //                     node.innerText = __translationCache[node.innerHTML]
-    //                     setNodeTranslated(node)
-    //                     continue
-    //                 }
-    //             }
-    //             let resp = await translate(node.innerHTML, 'html', sl, tl)
-    //             if (node.innerHTML.length <= 200) {
-    //                 __translationCache[node.innerHTML] = resp.text
-    //             }
-    //             node.innerHTML = resp.text
-    //             setNodeTranslated(node)
-    //             if (node.childNodes) {
-    //                 [...node.childNodes].forEach(n => {
-    //                     let tagName = n.tagName ? n.tagName.toLowerCase() : ''
-    //                     if (n && __nodesToTranslate.includes(tagName)) {
-    //                         setNodeTranslated(n)
-    //                     }
-    //                 })
-    //             }
-    //         }
-    //     }
-    // }
     async function translateNodes(allNodes, sl, tl) {
         let textsToTranslate = [];
         let nodesToTranslate = [];
