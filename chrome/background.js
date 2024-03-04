@@ -249,9 +249,12 @@ async function doTranslate(sl, tl, ak) {
     }
 
     async function translateNodes(allNodes, sl, tl) {
+        let textsToTranslate = [];
+        let nodesToTranslate = [];
+    
         for (let i = 0; i < allNodes.length; i++) {
-            let node = allNodes[i]
-
+            let node = allNodes[i];
+    
             if (node.innerHTML == node.innerText) {
                 /*
                 sites seem to often have some piece of text that is repeating frequently
@@ -270,41 +273,47 @@ async function doTranslate(sl, tl, ak) {
                 */
                 if (node.innerText.length <= 100) {
                     if (__translationCache[node.innerText]) {
-                        node.innerText = __translationCache[node.innerText]
-                        setNodeTranslated(node)
-                        continue
+                        node.innerText = __translationCache[node.innerText];
+                        setNodeTranslated(node);
+                        continue;
                     }
                 }
-
-                let resp = await translate(node.innerText, 'text', sl, tl)
-                if (node.innerText.length <= 100) {
-                    __translationCache[node.innerText] = resp.text
-                }
-                node.innerText = resp.text
-                setNodeTranslated(node)
+    
+                textsToTranslate.push(node.innerText);
+                nodesToTranslate.push(node);
             } else {
                 if (node.innerHTML.length <= 200) {
                     if (__translationCache[node.innerHTML]) {
-                        node.innerText = __translationCache[node.innerHTML]
-                        setNodeTranslated(node)
-                        continue
+                        node.innerText = __translationCache[node.innerHTML];
+                        setNodeTranslated(node);
+                        continue;
                     }
                 }
-                let resp = await translate(node.innerHTML, 'html', sl, tl)
-                if (node.innerHTML.length <= 200) {
-                    __translationCache[node.innerHTML] = resp.text
-                }
-                node.innerHTML = resp.text
-                setNodeTranslated(node)
-                if (node.childNodes) {
-                    [...node.childNodes].forEach(n => {
-                        let tagName = n.tagName ? n.tagName.toLowerCase() : ''
-                        if (n && __nodesToTranslate.includes(tagName)) {
-                            setNodeTranslated(n)
-                        }
-                    })
-                }
+    
+                textsToTranslate.push(node.innerHTML);
+                nodesToTranslate.push(node);
             }
+        }
+    
+        let translations = await translateBatch(textsToTranslate, 'text', sl, tl);
+    
+        for (let i = 0; i < nodesToTranslate.length; i++) {
+            let node = nodesToTranslate[i];
+            let translation = translations[i];
+    
+            if (node.innerHTML == node.innerText) {
+                if (node.innerText.length <= 100) {
+                    __translationCache[node.innerText] = translation;
+                }
+                node.innerText = translation;
+            } else {
+                if (node.innerHTML.length <= 200) {
+                    __translationCache[node.innerHTML] = translation;
+                }
+                node.innerHTML = translation;
+            }
+    
+            setNodeTranslated(node);
         }
     }
 
@@ -480,6 +489,11 @@ async function doTranslate(sl, tl, ak) {
     async function translate(txt, type, sl, tl) {
         let resp = await chrome.runtime.sendMessage({ action: "translate", type: type, text: txt, sl: sl, tl: tl, ak: ak })
         return resp
+    }
+
+    async function translateBatch(texts, type, sl, tl) {
+        let resp = await chrome.runtime.sendMessage({ action: "translate", type: type, text: texts, sl: sl, tl: tl, ak: ak })
+        return resp.text
     }
 
 }
