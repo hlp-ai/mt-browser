@@ -191,7 +191,7 @@ async function doTranslate(sl, tl, ak) {
     }
     window.__ltActive = true
 
-    let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'li', 'b', 'i', 'a', 'label', 'figcaption'];
+    let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'li', 'b', 'i', 'a', 'label', 'figcaption', 'em'];
     let __translationCache = {};
 
     let resp = await translate(document.title, 'text', sl, tl)
@@ -256,72 +256,88 @@ async function doTranslate(sl, tl, ak) {
     }
     */
 
+    async function translateBatch(texts, type, sl, tl) {
+        let responses = await chrome.runtime.sendMessage({
+            action: "translate",
+            type: type,
+            text: texts,
+            sl: sl,
+            tl: tl,
+            ak: ak
+        });
+        console.log(responses)
+        return responses;
+    }
     async function translateNodes(allNodes, sl, tl) {
-        let textsToTranslate = [];
-        let nodesToTranslate = [];
+        let textRequests = [];
+        let htmlRequests = [];
     
         for (let i = 0; i < allNodes.length; i++) {
             let node = allNodes[i];
     
             if (node.innerHTML == node.innerText) {
-                /*
-                sites seem to often have some piece of text that is repeating frequently
-                think a "report" button under every post. Cache translations for small
-                text fragments like that instead of querying the translation server every time.
-                
-                the limitation of checking <= 100 is entirely arbitrary. i just want to avoid caching for
-                large text, since the longer the text, the lower the likelyhood of it repeating.
-
-                same goes for the HTML below with the same logic, but we bump the max length to 200,
-                since there might be some HTML markup like an 'a' tag in there. again, 200 was chosen arbitrarily.
-                Both of these numbers can probably be optimized by measuring what would make sense instead of
-                pulling them from where the sun don't shine.
-
-                We also probably should implement some kind of LRU eviction so it doesn't grow infinitely...
-                */
-                if (node.innerText.length <= 100) {
-                    if (__translationCache[node.innerText]) {
-                        node.innerText = __translationCache[node.innerText];
-                        setNodeTranslated(node);
-                        continue;
-                    }
+                if (node.innerText.length <= 100 && __translationCache[node.innerText]) {
+                    node.innerText = __translationCache[node.innerText];
+                    setNodeTranslated(node);
+                    continue;
                 }
     
-                textsToTranslate.push(node.innerText);
-                nodesToTranslate.push(node);
+                textRequests.push({
+                    text: node.innerText,
+                    node: node
+                });
             } else {
-                if (node.innerHTML.length <= 200) {
-                    if (__translationCache[node.innerHTML]) {
-                        node.innerText = __translationCache[node.innerHTML];
-                        setNodeTranslated(node);
-                        continue;
-                    }
+                if (node.innerHTML.length <= 200 && __translationCache[node.innerHTML]) {
+                    node.innerHTML = __translationCache[node.innerHTML];
+                    setNodeTranslated(node);
+                    continue;
                 }
     
-                textsToTranslate.push(node.innerHTML);
-                nodesToTranslate.push(node);
+                htmlRequests.push({
+                    text: node.innerHTML,
+                    node: node
+                });
             }
         }
     
-        let translations = await translateBatch(textsToTranslate, 'text', sl, tl);
+        if (textRequests.length > 0) {
+            let textResponses = await translateBatch(textRequests.map(req => req.text), 'text', sl, tl);
+            let texttranslations = textResponses.text;
+            for (let i = 0; i < texttranslations.length; i++) {
+                let resp = texttranslations[i];
+                let req = textRequests[i];
     
-        for (let i = 0; i < nodesToTranslate.length; i++) {
-            let node = nodesToTranslate[i];
-            let translation = translations[i];
+                if (req.text.length <= 100) {
+                    __translationCache[req.text] = resp;
+                }
     
-            if (node.innerHTML == node.innerText) {
-                if (node.innerText.length <= 100) {
-                    __translationCache[node.innerText] = translation;
-                }
-                node.innerText = translation;
-            } else {
-                if (node.innerHTML.length <= 200) {
-                    __translationCache[node.innerHTML] = translation;
-                }
-                node.innerHTML = translation;
+                req.node.innerText = resp;
+                setNodeTranslated(req.node);
             }
+        }
     
-            setNodeTranslated(node);
+        if (htmlRequests.length > 0) {
+            let htmlResponses = await translateBatch(htmlRequests.map(req => req.text), 'html', sl, tl);
+            let htmltranslations = htmlResponses.text;
+            for (let i = 0; i < htmltranslations.length; i++) {
+                let resp = htmltranslations[i];
+                let req = htmlRequests[i];
+    
+                if (req.text.length <= 200) {
+                    __translationCache[req.text] = resp;
+                }
+    
+                req.node.innerHTML = resp;
+                setNodeTranslated(req.node);
+                if (req.node.childNodes) {
+                    [...req.node.childNodes].forEach(n => {
+                        let tagName = n.tagName ? n.tagName.toLowerCase() : ''
+                        if (n && __nodesToTranslate.includes(tagName)) {
+                            setNodeTranslated(n)
+                        }
+                    })
+                }
+            }
         }
     }
     //表示节点已翻译
@@ -498,10 +514,4 @@ async function doTranslate(sl, tl, ak) {
         let resp = await browser.runtime.sendMessage({ action: "translate", type: type, text: txt, sl: sl, tl: tl, ak: ak })
         return resp
     }
-
-    async function translateBatch(texts, type, sl, tl) {
-        let resp = await chrome.runtime.sendMessage({ action: "translate", type: type, text: texts, sl: sl, tl: tl, ak: ak })
-        return resp.text
-    }
-
 }
