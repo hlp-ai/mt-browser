@@ -1,5 +1,9 @@
 var chrome = chrome || browser
 
+// 初始化状态
+let isTranslated = false;
+let isRestoring = false;
+
 document.addEventListener('DOMContentLoaded', async function () {
 
     try {
@@ -28,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (e) { /*maybe display some UI? don't know*/ }
 
     setView('main')
-    // request_ad();
 
     document.getElementById('doTranslate').addEventListener('click', async function () {
         console.log("sending msg")
@@ -43,6 +46,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             api_key: ak
         });
         console.log("rcv'd ", resp);
+        isTranslated = true;
+        isRestoring = false;
+        // updateButtonStates()
         window.close()
     })
 
@@ -58,6 +64,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
             console.log('来自content的回复：' + response);
         });
+        isRestoring = true;
+        isTranslated = false;
+        // updateButtonStates()
         window.close();
     })
 
