@@ -199,8 +199,19 @@ async function doTranslate(sl, tl, ak) {
 
     /* we only translate elements visible in the viewport for performance reasons
     rescan the dom for elements to translate if the viewport changes */
-    document.addEventListener('scroll', translateDom);
-    window.addEventListener('resize', translateDom);
+    let scrollTimer;
+    let resizeTimer;
+    
+    document.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(translateDom, 200);
+    });
+    
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(translateDom, 200);
+    });
+    
     translateDom();
 
     async function translateDom() {
