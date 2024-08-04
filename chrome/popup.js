@@ -7,7 +7,7 @@ let isRestoring = false;
 document.addEventListener('DOMContentLoaded', async function () {
 
     try {
-        request_ad();
+        request_ad();  // 每次显示翻译框都会刷新广告
 
         // 从服务器获取语言和设置语言选择
         let resp = await APIQuery('GET', 'languages', null)
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
             collection[s.dataset['storename']] = s.value;
         }
-        chrome.storage.sync.set({ settings: collection });
+        chrome.storage.sync.set({ settings: collection });  // 保存设置
         setView('main');
     })
 })
@@ -153,6 +153,7 @@ function APIQuery(method, route, body) {
 
 }
 
+// 获取设置并执行操作cb
 function getSettings(cb) {
     chrome.storage.sync.get('settings', function (data) {
         if (!data.settings) {
