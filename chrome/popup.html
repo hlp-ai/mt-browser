@@ -1,8 +1,9 @@
+<html>
+<head>
 <meta charset=utf-8>
 
 <style type="text/css">
-    html,
-    body {
+    html, body {
         padding-left: 5px;
         padding-right: 15px;
         padding-top: 5px;
@@ -22,15 +23,24 @@
         cursor: pointer;
     }
 
+    .lang_select {
+        width: 100%;
+        height: 36px;
+        border: 1px solid #ccc;
+        padding: 2px;
+    }
+
     .ad-container {
         margin-bottom: 0px;
         text-align: center;
-        background-color: #f0f8ff; /* 设置背景颜色 */
+        background-color: #f0f8ff;
     }
 </style>
 
 <link rel="stylesheet" href="vendor/picocss/pico.min.css">
-</link>
+</head>
+
+<body>
 
 <div class="view view_main">
     <div class="navbar" style="text-align:right;">
@@ -38,24 +48,26 @@
             <img src="vendor/feathericons/settings.svg" alt="settings" />
         </span>
     </div>
+
     <div class="input-line">
         <label for="translatefrom">
             网页语言
         </label>
-        <select id="translatefrom" style="width:100%;height:36px;border:1px solid #ccc;padding:2px;"></select>
+        <select id="translatefrom" class="lang_select"></select>
     </div>
+
     <div class="input-line">
         <label for="translateto">
             目标语言
         </label>
-        <select id="translateto" style="width:100%;height:36px;border:1px solid #ccc;padding:2px;"></select>
+        <select id="translateto" class="lang_select"></select>
     </div>
-    <!--    <button id="doTranslate" style="width:100%;height:36px;padding:2px;">翻译网页</button>-->
+
     <button id="doTranslate" style="width:48%;height:36px;padding:2px;float:left;">翻译网页</button>
     <button id="goback" style="width:48%;height:36px;padding:2px;float:right;">恢复网页</button>
     <div style="clear:both;"></div>
     <div class="ad-container">
-        <p>这是一段广告文本。</p>
+        <p>广告位待定</p>
     </div>
 </div>
 
@@ -73,7 +85,11 @@
         <button id="saveSettings" style="width:100%;height:36px;padding:2px;">保存设置</button>
     </div>
     <div class="ad-container">
-        <p>这是一段广告文本。</p>
+        <p>广告位待定</p>
     </div>
 </div>
+
 <script type="text/javascript" src="popup.js"></script>
+
+</body>
+</html>
