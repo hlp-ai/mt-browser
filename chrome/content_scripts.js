@@ -1,10 +1,11 @@
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
-    if (request.cmd === 'goback') {
+    if (request.cmd === 'goback') {  // 来自popup的恢复网页消息
         console.log('refresh')
         window.location.reload()
     }
-    if (request.todo == "translate") {
+
+    if (request.todo == "translated") {  // background的取词翻译结果消息
         var res = request.result
         var db = document;
         var w = window;
@@ -37,11 +38,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
             db.body.removeChild(box);
         }
     }
-    if (request.todo == 'change') {
+
+    if (request.todo == 'text_direction') {  //来自background的页面文字显示方向改变消息
         document.body.style.direction = "ltr";
         document.getElementsByClassName("js-dialog").style.direction = "ltr";
     }
-    if(request.todo == 'failed'){
+
+    if(request.todo == 'failed'){  // background取词翻译失败消息
         alert(request.message)
     }
 })

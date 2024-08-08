@@ -1,8 +1,5 @@
 var chrome = chrome || browser
 
-// 初始化状态
-let isTranslated = false;
-let isRestoring = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
 
@@ -51,9 +48,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
 
         //console.log("rcv'd ", resp);
-        isTranslated = true;
-        isRestoring = false;
-        // updateButtonStates()
 
         // 关闭翻译框
         window.close()
@@ -62,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 恢复网页按钮事件
     document.getElementById('goback').addEventListener('click', async function () {
         // console.log("sending msg")
+        // 向content-script发送页面恢复消息
         function sendMessageToContentScript(message, callback) {
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 chrome.tabs.sendMessage(tabs[0].id, message, function (response) {
@@ -73,9 +68,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.log('来自content的回复：' + response);
         });
 
-        isRestoring = true;
-        isTranslated = false;
-        // updateButtonStates()
         window.close();
     })
 

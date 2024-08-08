@@ -17,17 +17,19 @@ function showErrorNotification(type, message) {
     }
 }
 
+// 创建取词翻译菜单
 var menuItem = {
     "id": "translate",
     "title": "翻译",
     "contexts": ["selection"]
-}
+};
 chrome.contextMenus.create(menuItem);
 
+// 创建取词翻译语言列表菜单
 chrome.runtime.onInstalled.addListener(async function () {
     let resp = await APIQuery('GET', 'languages', null)
     console.log(resp)
-    console.log(typeof (resp))
+    //console.log(typeof (resp))
     for (lang of resp) {
         var menuItem = {
             "id": lang.code,
@@ -37,8 +39,9 @@ chrome.runtime.onInstalled.addListener(async function () {
         }
         chrome.contextMenus.create(menuItem);
     }
-})
+});
 
+// 取词翻译处理
 chrome.contextMenus.onClicked.addListener(async function (clickData) {
     if (clickData.selectionText) {
         // clickData.menuItemId : 被点击的菜单选项卡id
@@ -82,26 +85,29 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
             } else {
                 console.log(trans_json.translatedText)
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, { todo: "translate", result: trans_json.translatedText })
+                    chrome.tabs.sendMessage(tabs[0].id, { todo: "translated", result: trans_json.translatedText })
                 })
             }
         })
     }
 })
 
-
+// popup和content脚本消息处理
 chrome.runtime.onMessage.addListener(
 
     function (request, sender, sendResponse) {
-        console.log('request service')
+        //console.log('request service')
         console.log(request)
-        if (request.action === "translate") {
+        if (request.action === "translate") {  // 来自注入代码的翻译消息
+            // 修改页面文字显示方向
             if (request.sl === "ar") {
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, { todo: "change" })
+                    chrome.tabs.sendMessage(tabs[0].id, { todo: "text_direction" })
                 })
             }
-            console.log('translate' + request)
+
+            //console.log('translate' + request)
+            // 发送翻译消息给翻译服务器
             let jsn = APIQuery('POST', 'translate',
                 JSON.stringify({
                     q: request.text,
@@ -112,19 +118,20 @@ chrome.runtime.onMessage.addListener(
                 })).then(function (jsn) {
                     // sendResponse({ type: request.type, text: jsn.translatedText });
                     if(jsn.error){
-                        showErrorNotification("translate failed","Translation failed: " + jsn.error);
+                        showErrorNotification("translate failed", "Translation failed: " + jsn.error);
                     }else{
-                        console.log(jsn.translatedText)
-                        sendResponse({ type: request.type, text: jsn.translatedText });
+                        //console.log(jsn.translatedText)
+                        sendResponse({type: request.type, text: jsn.translatedText});
                     }
                 })
-            return true
 
+            return true;
         }
-        if (request.action === "inject") {
 
+        if (request.action === "inject") {  // 来自popup的翻译注入消息
             chrome.tabs.query({ active: true }).then(function (tabId) {
-                console.log(tabId)
+                //console.log(tabId)
+                // 在注入页面中执行翻译脚本doTranslate
                 chrome.scripting.executeScript(
                     {
                         target: { tabId: tabId[0].id },
@@ -132,15 +139,17 @@ chrome.runtime.onMessage.addListener(
                         args: [request.sl, request.tl, request.api_key],
                     },
                 );
-                sendResponse(null)
+                sendResponse(null);
             })
 
         }
-        if (request.action === "detect-lang") {
+
+        if (request.action === "detect-lang") {  // 语言检查请求，来自翻译页面函数
             chrome.i18n.detectLanguage(request.text).then(function (info) {
                 sendResponse(info)
             });
         }
+
         return true
     }
 
@@ -191,20 +200,22 @@ function getSettings(cb) {
 }
 
 
+/*************************************
+ *     content-script注入脚本函数
+ *************************************/
 async function doTranslate(sl, tl, ak) {
-    if (window.__ltActive) {
+    if (window.__ltActive) {  // 正在或已经翻译？
         return
     }
     window.__ltActive = true
 
     let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'li', 'b', 'i', 'a', 'label', 'figcaption', 'em'];
-    let __translationCache = {};
+    let __translationCache = {};  // 翻译缓存
 
-    let resp = await translate(document.title, 'text', sl, tl)
+    let resp = await translate(document.title, 'text', sl, tl)   // 翻译标题
     document.title = resp.text
 
-    /* we only translate elements visible in the viewport for performance reasons
-    rescan the dom for elements to translate if the viewport changes */
+    // 处于性能原因，只翻译视窗中可见部分，当视窗改变时，重新扫描DOM进行翻译
     // document.addEventListener('scroll', translateDom);
     let scrollTimer;
     let resizeTimer;
@@ -219,50 +230,54 @@ async function doTranslate(sl, tl, ak) {
         resizeTimer = setTimeout(translateDom, 200);
     });
     
-    translateDom();
+    translateDom();  // 翻译页面
 
+    // 翻译页面
     async function translateDom() {
+        // 寻找可翻译元素
         nodes = findtranslatableElements();
-        /* the api server understand "auto" and can guess the source language too
-        but we send small fragments and so sometimes it lacks info.
-        we have the info in the browser where we can look at more text and then
-        just set the language so small fragments are properly translated too. */
-        if (sl == 'auto') {
+
+        // 尽管服务器端可以自动识别源文本语言，但可能少量文本容易误识别，所以，这里请求浏览器进行语言识别
+        if (sl == 'auto')
             sl = await detectLanguage(nodes);
-        }
-        translateNodes(nodes, sl, tl);
+
+        translateNodes(nodes, sl, tl);  // 翻译节点集
     }
 
+    // 源文本语言检测
     async function detectLanguage(nodes) {
         let langfreqmap = {};
         for (node of nodes) {
+            // 请求浏览器检测文本语言
             let resp = await chrome.runtime.sendMessage({ action: "detect-lang", text: node.innerText });
-            console.log(resp)
+            console.log(resp);
             if (resp.languages.length >= 1) {
-                let lang = resp.languages[0].language
-                if (!langfreqmap[lang]) {
-                    langfreqmap[lang] = 0
-                }
+                let lang = resp.languages[0].language;
+                if (!langfreqmap[lang])
+                    langfreqmap[lang] = 0;
+
                 //weight each guess by length of text and certainty
-                langfreqmap[lang] += (node.innerText.length * (resp.languages[0].percentage / 100))
+                langfreqmap[lang] += (node.innerText.length * (resp.languages[0].percentage / 100));
             }
         }
         let detectedlang = '';
         let detectscore = 0;
         for (var key of Object.keys(langfreqmap)) {
             if (langfreqmap[key] > detectscore) {
-                detectedlang = key
-                detectscore = langfreqmap[key]
+                detectedlang = key;
+                detectscore = langfreqmap[key];
             }
         }
-        if (detectedlang == '') {
-            detectLanguage = 'auto'
-        }
 
-        return detectedlang
+        if (detectedlang == '')
+            detectLanguage = 'auto';
+
+        return detectedlang;
     }
 
+    // 成批翻译, 通过background和服务器通信实现翻译
     async function translateBatch(texts, type, sl, tl) {
+        // 向background发送翻译消息
         let responses = await chrome.runtime.sendMessage({
             action: "translate",
             type: type,
@@ -274,6 +289,8 @@ async function doTranslate(sl, tl, ak) {
         // console.log(responses)
         return responses;
     }
+
+    // 翻译给定节点集
     async function translateNodes(allNodes, sl, tl) {
         let textRequests = [];
         let htmlRequests = [];
@@ -282,7 +299,7 @@ async function doTranslate(sl, tl, ak) {
             let node = allNodes[i];
     
             if (node.innerHTML == node.innerText) {
-                if (node.innerText.length <= 100 && __translationCache[node.innerText]) {
+                if (node.innerText.length <= 100 && __translationCache[node.innerText]) { // 短文本查询翻译缓存
                     node.innerText = __translationCache[node.innerText];
                     setNodeTranslated(node);
                     continue;
@@ -293,7 +310,7 @@ async function doTranslate(sl, tl, ak) {
                     node: node
                 });
             } else {
-                if (node.innerHTML.length <= 200 && __translationCache[node.innerHTML]) {
+                if (node.innerHTML.length <= 200 && __translationCache[node.innerHTML]) {  // 短内容节点查询翻译缓存
                     node.innerHTML = __translationCache[node.innerHTML];
                     setNodeTranslated(node);
                     continue;
@@ -307,7 +324,9 @@ async function doTranslate(sl, tl, ak) {
         }
     
         if (textRequests.length > 0) {
+            // 成批翻译
             let textResponses = await translateBatch(textRequests.map(req => req.text), 'text', sl, tl);
+
             let texttranslations = textResponses.text;
             for (let i = 0; i < texttranslations.length; i++) {
                 let resp = texttranslations[i];
@@ -323,7 +342,9 @@ async function doTranslate(sl, tl, ak) {
         }
     
         if (htmlRequests.length > 0) {
+            // 成批翻译
             let htmlResponses = await translateBatch(htmlRequests.map(req => req.text), 'html', sl, tl);
+
             let htmltranslations = htmlResponses.text;
             for (let i = 0; i < htmltranslations.length; i++) {
                 let resp = htmltranslations[i];
@@ -347,89 +368,96 @@ async function doTranslate(sl, tl, ak) {
         }
     }
 
+    // 设置节点已经翻译
     function setNodeTranslated(node) {
         node.dataset.__ltTranslated = 'true'
     }
 
+    // 节点是否已翻译
     function getNodeTranslated(node) {
-        return node.dataset.__ltTranslated === 'true'
+        return node.dataset.__ltTranslated === 'true';
     }
 
+    // 将节点设置为在翻译队列中
     function setNodeQueued(node) {
-        node.dataset.__ltQueued = 'true'
+        node.dataset.__ltQueued = 'true';
     }
 
+    // 节点是否在翻译队列中
     function getNodeQueued(node) {
-        return node.dataset.__ltQueued === 'true'
+        return node.dataset.__ltQueued === 'true';
     }
 
+    // 寻找可以翻译的节点元素
     function findtranslatableElements() {
-        let allNodes = [];
+        let allNodes = [];  // 待翻译节点集
 
-        for (tagName of __nodesToTranslate) {
+        for (tagName of __nodesToTranslate) {  // 对每个可翻译节点
             let nodeList = document.getElementsByTagName(tagName);
-            let nodes = Array.prototype.slice.call(nodeList);
-            nodes = filterTranslatable(nodes)
-            nodes = filterHidden(nodes)
-            nodes = filterInViewport(nodes)
-            nodes = filterTranslated(nodes)
-            nodes = filterQueued(nodes)
+            let nodes = Array.prototype.slice.call(nodeList);  // 将nodelist转换成数组
+            nodes = filterTranslatable(nodes);  // 过滤掉非文本节点
+            // nodes = filterHidden(nodes);  // 过滤掉不可见的节点
+            nodes = filterInViewport(nodes);  // 过滤掉不在视窗中的节点
+            nodes = filterTranslated(nodes);  // 过滤掉已翻译结点
+            nodes = filterQueued(nodes);  // 过滤掉在翻译队列中的节点
 
-            for (n of nodes) {
-                setNodeQueued(n)
-            }
+            // 节点放入翻译队列中, 简单设置标记
+            for (n of nodes)
+                setNodeQueued(n);
 
-            allNodes = allNodes.concat(nodes)
+            allNodes = allNodes.concat(nodes);
         }
 
-        allNodes = filterChilds(allNodes)
+        allNodes = filterChilds(allNodes);  // 过滤掉翻译节点中的儿子节点
 
+        // 对翻译节点按位置排序
         allNodes.sort(function (a, b) {
             let ab = a.getBoundingClientRect();
             let bb = b.getBoundingClientRect();
 
-            return ab.top - bb.top
+            return ab.top - bb.top;
         });
 
-        return allNodes
+        return allNodes;
     }
 
+    // 过滤掉在翻译队列中的节点
     function filterQueued(nodes) {
         unqueuedNodes = [];
 
         for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i]
-            if (!getNodeQueued(node)) {
-                unqueuedNodes.push(node)
-            }
+            let node = nodes[i];
+            if (!getNodeQueued(node))  // 不在翻译队列中
+                unqueuedNodes.push(node);
         }
-        return unqueuedNodes
+        return unqueuedNodes;
     }
 
+    // 过滤掉已翻译节点
     function filterTranslated(nodes) {
-        translatedNodes = [];
+        untranslatedNodes = [];
 
         for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i]
-            if (!getNodeTranslated(node)) {
-                translatedNodes.push(node)
-            }
+            let node = nodes[i];
+            if (!getNodeTranslated(node)) // 未翻译
+                untranslatedNodes.push(node);
         }
-        return translatedNodes
+        return untranslatedNodes;
     }
 
+    // 过滤掉不在视窗中的节点
     function filterInViewport(nodes) {
         viewportNodes = [];
 
         for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i]
-            if (isInViewport(node)) {
-                viewportNodes.push(node)
-            }
+            let node = nodes[i];
+            if (isInViewport(node))
+                viewportNodes.push(node);
         }
-        return viewportNodes
+        return viewportNodes;
     }
 
+    // 节点是否在视窗中
     function isInViewport(node) {
         let bounding = node.getBoundingClientRect();
         return (
@@ -443,77 +471,81 @@ async function doTranslate(sl, tl, ak) {
         );
     }
 
+    // 过滤掉不含文本节点
     function filterTranslatable(nodes) {
         translateableNodes = [];
 
         for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i]
-            if (hasTranslateableText(node)) {
-                translateableNodes.push(node)
-            }
+            let node = nodes[i];
+            if (hasTranslateableText(node))
+                translateableNodes.push(node);
         }
-        return translateableNodes
+        return translateableNodes;
     }
 
+    // 节点是否是文本节点，或儿子节点是否有文本节点
     function hasTranslateableText(node) {
-        if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() != "") {
-            return true
-        }
-        node = node.firstChild
+        // 节点是非空文本节点
+        if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() != "")
+            return true;
+
+        // 是否有儿子节点是非空文本节点
+        node = node.firstChild;
         while (node) {
-            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() != "") {
-                return true
-            }
-            node = node.nextSibling
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() != "")
+                return true;
+
+            node = node.nextSibling;
         }
-        return false
+        return false;
     }
 
     function filterHidden(nodes) {
         visibleNodes = [];
+
+        // 元素是否可见
         function isHidden(el) {
-            return (el.offsetParent === null)
+            return (el.offsetParent === null);
         }
 
         for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i]
-            if (!isHidden(node)) {
-                visibleNodes.push(node)
-            }
+            let node = nodes[i];
+            if (!isHidden(node))
+                visibleNodes.push(node);
         }
-        return visibleNodes
+        return visibleNodes;
     }
 
+    // 过滤掉翻译节点中重复的儿子节点
     function filterChilds(nodes) {
         topLevelNodes = [];
 
         for (let i = 0; i < nodes.length; i++) {
-            let child = nodes[i]
-            var node = child
-            var found = false
+            let child = nodes[i];
+            var node = child;
+            var found = false;
             while (node.parentNode) {
-                node = node.parentNode
+                node = node.parentNode;
 
-                //we're a child of another node in the list
+                // 节点是翻译节点集中其他节点子节点
                 if (includesNode(nodes, node)) {
-                    found = true
+                    found = true;
                     break;
                 }
             }
-            if (!found) {
+            if (!found)
                 topLevelNodes.push(child);
-            }
         }
-        return topLevelNodes
+        return topLevelNodes;
     }
 
+    // 节点是否在节点集中存在
     function includesNode(haystack, needle) {
         for (n of haystack) {
-            if (needle.isSameNode(n)) {
-                return true
-            }
+            if (needle.isSameNode(n))
+                return true;
         }
-        return false
+        return false;
     }
 
     async function translate(txt, type, sl, tl) {
