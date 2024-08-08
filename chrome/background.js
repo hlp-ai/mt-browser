@@ -1,6 +1,7 @@
 var chrome = chrome || browser
 
 let notificationShown = false;
+// 显示错误通知
 function showErrorNotification(type, message) {
     if(!notificationShown){
         notificationShown = true;
@@ -19,8 +20,8 @@ function showErrorNotification(type, message) {
 
 // 创建取词翻译菜单
 var menuItem = {
-    "id": "translate",
-    "title": "翻译",
+    "id": "pickTranslate",
+    "title": "YiMT翻译",
     "contexts": ["selection"]
 };
 chrome.contextMenus.create(menuItem);
@@ -35,7 +36,7 @@ chrome.runtime.onInstalled.addListener(async function () {
             "id": lang.code,
             "title": lang.cname,
             "contexts": ["selection"],
-            "parentId": "translate"
+            "parentId": "pickTranslate"
         }
         chrome.contextMenus.create(menuItem);
     }
@@ -155,7 +156,7 @@ chrome.runtime.onMessage.addListener(
 
 );
 
-
+// 和服务器通信
 function APIQuery(method, route, body) {
 
     return new Promise(function (resolve, reject) {
@@ -169,11 +170,11 @@ function APIQuery(method, route, body) {
                     resolve(jsn)
                 }).catch(function (err) {
                     reject(err)
-                    showErrorNotification("translate failed","Translation failed: " + err);
+                    showErrorNotification("服务器处理失败", "错误信息: " + err);
                 })
             }).catch(function (err) {
                 reject(err)
-                showErrorNotification("connect failed", "Translation failed: " + err);
+                showErrorNotification("服务器连接失败", "错误信息: " + err);
             });
         })
     })
