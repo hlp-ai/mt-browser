@@ -46,49 +46,49 @@ chrome.runtime.onInstalled.addListener(async function () {
 // 取词翻译处理
 chrome.contextMenus.onClicked.addListener(async function (clickData) {
     if (clickData.selectionText) {
-        // clickData.menuItemId : 被点击的菜单选项卡id
-        // clickData.selectionText: 选中的内容
-        var transword = clickData.selectionText
-        var source_lang = 'auto'
-        var target_lang = clickData.menuItemId
+        var transword = clickData.selectionText;  // 选中的内容
+        var source_lang = 'auto';
+        var target_lang = clickData.menuItemId;  // 被点击的菜单选项卡id
         chrome.storage.sync.get('settings', async function (data) {
-            console.log("datasetting: " + !data.settings)
+            console.log("datasetting: " + !data.settings);
             if (!data.settings) {
                 var defaultsettings = {
                     'api-endpoint':"http://127.0.0.1:5555/",
                     'api-key': ""
-                }
+                };
                 data.settings = defaultsettings;
             }
             console.log(data.settings['api-endpoint']);
             var ak = data.settings['api-key'];
-            if(typeof ak === 'undefined'){
-                ak = ""
-            }
+            if(typeof ak === 'undefined')
+                ak = "";
+
             var endpoint = data.settings['api-endpoint'];
-            if (endpoint.charAt(endpoint.length - 1) !== '/') {
+            if (endpoint.charAt(endpoint.length - 1) !== '/')
                 endpoint += '/';
-            }
+
             const res = await fetch(endpoint + "translate", {
                 method: "POST",
                 body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
                 headers: { "Content-Type": "application/json" }
             }).catch(function (err) {
-                console.log(err)
+                console.log(err);
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     chrome.tabs.sendMessage(tabs[0].id, { todo: "failed" ,message: err.message})
-                })
+                });
                 // showErrorNotification("connect failed", "Translation failed: " + err);
             });
+
             // transresult = clickData.selectionText
             trans_json = await res.json()
             if (trans_json.error) {
-                showErrorNotification("translate error", "Translation failed: " + trans_json.error);
+                showErrorNotification("服务器处理失败", "错误信息: " + trans_json.error);
             } else {
                 console.log(trans_json.translatedText)
+                // 弹出框中显示翻译结果
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     chrome.tabs.sendMessage(tabs[0].id, { todo: "translated", result: trans_json.translatedText })
-                })
+                });
             }
         })
     }
