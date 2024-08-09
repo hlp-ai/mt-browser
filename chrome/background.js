@@ -18,26 +18,27 @@ function showErrorNotification(type, message) {
     }
 }
 
-// 创建取词翻译菜单
-var menuItem = {
-    "id": "pickTranslate",
-    "title": "YiMT翻译",
-    "contexts": ["selection"]
-};
-chrome.contextMenus.create(menuItem);
-
-// 创建取词翻译语言列表菜单
+// 创建取词翻译语言菜单
 chrome.runtime.onInstalled.addListener(async function () {
     let resp = await APIQuery('GET', 'languages', null)
-    console.log(resp)
-    //console.log(typeof (resp))
+    // console.log(resp)
+
+    // 创建取词翻译菜单
+    let menuItem = {
+        "id": "pickTranslate",
+        "title": "YiMT翻译",
+        "contexts": ["selection"]
+    };
+    chrome.contextMenus.create(menuItem);
+
+    // 语言列表子菜单
     for (lang of resp) {
-        var menuItem = {
+        let menuItem = {
             "id": lang.code,
             "title": lang.cname,
             "contexts": ["selection"],
             "parentId": "pickTranslate"
-        }
+        };
         chrome.contextMenus.create(menuItem);
     }
 });
