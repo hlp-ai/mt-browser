@@ -211,7 +211,10 @@ async function doTranslate(sl, tl, ak) {
     }
     window.__ltActive = true
 
-    let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'div', 'li', 'b', 'i', 'a', 'label', 'figcaption', 'em'];
+    let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                              'p', 'span', 'div',
+                              'li', 'a', 'label', 'figcaption', "button",
+                              'em', "strong", 'b', 'i'];
     let __translationCache = {};  // 翻译缓存
 
     let resp = await translate(document.title, 'text', sl, tl)   // 翻译标题
