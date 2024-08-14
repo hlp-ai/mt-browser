@@ -175,8 +175,19 @@ async function request_ad(){
     content = res.content;
     url = res.url;
 
+    getSettings(function (data) {
+        server = data.settings['api-endpoint'];
+        url = server + "click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + url;
+
+        // 翻译框和设置框2个广告区域
+        document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
+        document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
+    });
+
+    //url = "http://127.0.0.1:5555/click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + url;
+
     //console.log(ad_id, type, content, url);
     // 翻译框和设置框2个广告区域
-    document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
-    document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
+    //document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
+    //document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
 }
