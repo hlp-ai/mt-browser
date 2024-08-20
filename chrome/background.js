@@ -224,6 +224,7 @@ async function doTranslate(sl, tl, ak) {
     // document.addEventListener('scroll', translateDom);
     let scrollTimer;
     let resizeTimer;
+    let clickTimer;
     
     document.addEventListener('scroll', () => {
         clearTimeout(scrollTimer);
@@ -233,6 +234,11 @@ async function doTranslate(sl, tl, ak) {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(translateDom, 200);
+    });
+
+    window.addEventListener('click', () => {
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(translateDom, 200);
     });
     
     translateDom();  // 翻译页面
