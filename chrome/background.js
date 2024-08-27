@@ -213,7 +213,7 @@ async function doTranslate(sl, tl, ak) {
 
     let __nodesToTranslate = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                               'p', 'span', 'div',
-                              'li', 'a', 'label', 'figcaption', "button",
+                              'li', 'a', 'label', 'figcaption', "button", "header",
                               'em', "strong", 'b', 'i'];
     let __translationCache = {};  // 翻译缓存
 
