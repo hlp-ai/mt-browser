@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "yimt-browser",
+    "name": "YiMT翻译插件",
     "version": "1.0.22",
-    "description": "YiMT翻译插件",
+    "description": "基于YiMT服务的浏览器翻译插件",
     "icons": {
         "48": "icons/icon-48.png"
     },
@@ -25,7 +25,7 @@
             "48": "icons/icon-48.png"
         },
         "default_popup": "popup.html",
-        "default_title": "yimt-browser"
+        "default_title": "YiMT翻译插件"
     },
     "permissions": [
         "contextMenus",
