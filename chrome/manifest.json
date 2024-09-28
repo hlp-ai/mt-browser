@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "yimt-browser",
     "version": "1.0.22",
-    "description": "translate html via yimt service",
+    "description": "YiMT翻译插件",
     "icons": {
         "48": "icons/icon-48.png"
     },
