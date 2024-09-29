@@ -1,8 +1,8 @@
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendMessage) {
     if (request.cmd === 'goback') {  // 来自popup的恢复网页消息
-        console.log('refresh')
-        window.location.reload()
+        console.log('refresh');
+        window.location.reload();
     }
 
     if (request.todo == "translated") {  // background的取词翻译结果消息

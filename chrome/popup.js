@@ -37,10 +37,12 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
             });
         }
+
         sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
             console.log('来自content的回复：' + response);
         });
 
+        // 关闭翻译框
         window.close();
     })
 
@@ -65,39 +67,49 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // 保存设置按钮事件
     document.getElementById('saveSettings').addEventListener('click', function () {
-        let settings = [...document.querySelectorAll('.setting')]
+        let settings = [...document.querySelectorAll('.setting')]  // 所有设置元素
         let collection = {};
         for (s of settings) {
-            if (!('storename' in s.dataset)) {
+            if (!('storename' in s.dataset)) {  // input有data-storename属性
                 continue
             }
-            collection[s.dataset['storename']] = s.value;
+            collection[s.dataset['storename']] = s.value;  // 获得设置元素的值
         }
         chrome.storage.sync.set({ settings: collection });  // 保存设置
-        setView('main');
+
+        setView('main');  // 返回翻译页
     })
 
     try {
         request_ad();  // 每次显示翻译框都会刷新广告
 
-        // 从服务器获取语言和设置语言选择
+        // 从服务器获取语言
         let resp = await APIQuery('GET', 'languages', null)
-        let trTo = document.getElementById('translateto')
+
+        // 添加源语言自动检测项
         let trFrom = document.getElementById('translatefrom')
         let opt = document.createElement('option');
         opt.value = "auto"
         opt.innerText = "自动检测"
         trFrom.appendChild(opt)
+
+        let trTo = document.getElementById('translateto')
+
         let browserLang = navigator.language.split("-")[0];  // 浏览器语言
+
         // console.log(typeof (resp))
         // console.log(resp)
+        // 添加语言列表选项
         for (lang of resp) {
+            // 添加源语言项
             let opt = document.createElement('option');
             opt.value = lang.code
             opt.innerText = lang.name
             trFrom.appendChild(opt)
+
+            // 添加目标语言项
             let opt2 = opt.cloneNode(true)
-            if (lang.code == browserLang)
+            if (lang.code == browserLang)  // 目标语言选中浏览器语言
                 opt2.selected = true
             trTo.appendChild(opt2)
         }
