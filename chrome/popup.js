@@ -2,33 +2,6 @@ var chrome = chrome || browser
 
 
 document.addEventListener('DOMContentLoaded', async function () {
-
-    try {
-        request_ad();  // 每次显示翻译框都会刷新广告
-
-        // 从服务器获取语言和设置语言选择
-        let resp = await APIQuery('GET', 'languages', null)
-        let trTo = document.getElementById('translateto')
-        let trFrom = document.getElementById('translatefrom')
-        let opt = document.createElement('option');
-        opt.value = "auto"
-        opt.innerText = "自动检测"
-        trFrom.appendChild(opt)
-        let browserLang = navigator.language.split("-")[0];  // 浏览器语言
-        // console.log(typeof (resp))
-        // console.log(resp)
-        for (lang of resp) {
-            let opt = document.createElement('option');
-            opt.value = lang.code
-            opt.innerText = lang.name
-            trFrom.appendChild(opt)
-            let opt2 = opt.cloneNode(true)
-            if (lang.code == browserLang)
-                opt2.selected = true
-            trTo.appendChild(opt2)
-        }
-    } catch (e) { /*maybe display some UI? don't know*/ }
-
     // 主视图可见
     setView('main')
 
@@ -103,6 +76,32 @@ document.addEventListener('DOMContentLoaded', async function () {
         chrome.storage.sync.set({ settings: collection });  // 保存设置
         setView('main');
     })
+
+    try {
+        request_ad();  // 每次显示翻译框都会刷新广告
+
+        // 从服务器获取语言和设置语言选择
+        let resp = await APIQuery('GET', 'languages', null)
+        let trTo = document.getElementById('translateto')
+        let trFrom = document.getElementById('translatefrom')
+        let opt = document.createElement('option');
+        opt.value = "auto"
+        opt.innerText = "自动检测"
+        trFrom.appendChild(opt)
+        let browserLang = navigator.language.split("-")[0];  // 浏览器语言
+        // console.log(typeof (resp))
+        // console.log(resp)
+        for (lang of resp) {
+            let opt = document.createElement('option');
+            opt.value = lang.code
+            opt.innerText = lang.name
+            trFrom.appendChild(opt)
+            let opt2 = opt.cloneNode(true)
+            if (lang.code == browserLang)
+                opt2.selected = true
+            trTo.appendChild(opt2)
+        }
+    } catch (e) { /*maybe display some UI? don't know*/ }
 })
 
 function setView() {
@@ -156,10 +155,12 @@ function getSettings(cb) {
             cb({ settings: defaultsettings })
             return
         }
+
         let settings = data.settings;
         if (!settings['api-endpoint'].endsWith('/')) {
             settings['api-endpoint'] += '/';
         }
+
         // cb(data)
         cb({ settings: settings });
     })
@@ -167,6 +168,7 @@ function getSettings(cb) {
 
 // 插件端请求广告，暂时放入请求url的链接
 async function request_ad(){
+    // 请求要展示的广告
     const res = await APIQuery('POST', 'request_ad', JSON.stringify({platform:"plugin"}));
     //console.log(res);
 
@@ -175,6 +177,7 @@ async function request_ad(){
     content = res.content;
     url = res.url;
 
+    // 设置广告区域
     getSettings(function (data) {
         server = data.settings['api-endpoint'];
         url = server + "click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + url;
@@ -183,11 +186,4 @@ async function request_ad(){
         document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
         document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
     });
-
-    //url = "http://127.0.0.1:5555/click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + url;
-
-    //console.log(ad_id, type, content, url);
-    // 翻译框和设置框2个广告区域
-    //document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
-    //document.getElementsByClassName("ad-container")[1].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
 }
