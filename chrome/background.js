@@ -1,14 +1,16 @@
 var chrome = chrome || browser
 
 let notificationShown = false;
+
 // 显示错误通知
-function showErrorNotification(type, message) {
-    if(!notificationShown){
+function showErrorNotification(title, message) {
+    if(!notificationShown){  // 通知没有显示
         notificationShown = true;
+
         chrome.notifications.create({
             type: "basic",
             iconUrl: "icons/icon-48.png",
-            title: type,
+            title: title,
             message: message
         }, function () {
             setTimeout(function () {
@@ -20,9 +22,6 @@ function showErrorNotification(type, message) {
 
 // 创建取词翻译语言菜单
 chrome.runtime.onInstalled.addListener(async function () {
-    let resp = await APIQuery('GET', 'languages', null)
-    // console.log(resp)
-
     // 创建取词翻译菜单
     let menuItem = {
         "id": "pickTranslate",
@@ -31,6 +30,8 @@ chrome.runtime.onInstalled.addListener(async function () {
     };
     chrome.contextMenus.create(menuItem);
 
+    let resp = await APIQuery('GET', 'languages', null)
+    // console.log(resp)
     // 语言列表子菜单
     for (lang of resp) {
         let menuItem = {
@@ -50,7 +51,7 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
         var source_lang = 'auto';
         var target_lang = clickData.menuItemId;  // 被点击的菜单选项卡id
         chrome.storage.sync.get('settings', async function (data) {
-            console.log("datasetting: " + !data.settings);
+            //console.log("datasetting: " + !data.settings);
             if (!data.settings) {
                 var defaultsettings = {
                     'api-endpoint':"http://127.0.0.1:5555/",
@@ -58,7 +59,7 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                 };
                 data.settings = defaultsettings;
             }
-            console.log(data.settings['api-endpoint']);
+            //console.log(data.settings['api-endpoint']);
             var ak = data.settings['api-key'];
             if(typeof ak === 'undefined')
                 ak = "";
@@ -67,14 +68,17 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
             if (endpoint.charAt(endpoint.length - 1) !== '/')
                 endpoint += '/';
 
+            // 发送翻译请求
             const res = await fetch(endpoint + "translate", {
                 method: "POST",
-                body: JSON.stringify({ q: transword, source: source_lang, target: target_lang, format: "text", api_key: ak }),
+                body: JSON.stringify({q: transword, source: source_lang, target: target_lang,
+                                      format: "text", api_key: ak}),
                 headers: { "Content-Type": "application/json" }
             }).catch(function (err) {
-                console.log(err);
-                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, { todo: "failed" ,message: err.message})
+                //console.log(err);
+                // 向content-scirpt发送错误显示消息
+                chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {todo: "failed", message: err.message})
                 });
                 // showErrorNotification("connect failed", "Translation failed: " + err);
             });
@@ -84,10 +88,10 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
             if (trans_json.error) {
                 showErrorNotification("服务器处理失败", "错误信息: " + trans_json.error);
             } else {
-                console.log(trans_json.translatedText)
+                //console.log(trans_json.translatedText)
                 // 弹出框中显示翻译结果
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, { todo: "translated", result: trans_json.translatedText })
+                    chrome.tabs.sendMessage(tabs[0].id, {todo: "translated", result: trans_json.translatedText })
                 });
             }
         })
@@ -99,10 +103,10 @@ chrome.runtime.onMessage.addListener(
 
     function (request, sender, sendResponse) {
         //console.log('request service')
-        console.log(request)
+        //console.log(request)
         if (request.action === "translate") {  // 来自注入代码的翻译消息
-            // 修改页面文字显示方向
-            if (request.sl === "ar") {
+            // 修改页面文字显示方向，TODO: 补充RTL语言代码列表判断
+            if (request.sl === "ar") {  // 源语言RTL，翻译结果要LTR
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     chrome.tabs.sendMessage(tabs[0].id, { todo: "text_direction" })
                 })
@@ -120,7 +124,7 @@ chrome.runtime.onMessage.addListener(
                 })).then(function (jsn) {
                     // sendResponse({ type: request.type, text: jsn.translatedText });
                     if(jsn.error){
-                        showErrorNotification("translate failed", "Translation failed: " + jsn.error);
+                        showErrorNotification("翻译失败", "错误信息: " + jsn.error);
                     }else{
                         //console.log(jsn.translatedText)
                         sendResponse({type: request.type, text: jsn.translatedText});
@@ -560,7 +564,7 @@ async function doTranslate(sl, tl, ak) {
     }
 
     async function translate(txt, type, sl, tl) {
-        let resp = await chrome.runtime.sendMessage({ action: "translate", type: type, text: txt, sl: sl, tl: tl, ak: ak })
+        let resp = await chrome.runtime.sendMessage({action: "translate", type: type, text: txt, sl: sl, tl: tl, ak: ak })
         return resp
     }
 
