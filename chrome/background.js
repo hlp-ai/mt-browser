@@ -30,17 +30,21 @@ chrome.runtime.onInstalled.addListener(async function () {
     };
     chrome.contextMenus.create(menuItem);
 
-    let resp = await APIQuery('GET', 'languages', null)
-    // console.log(resp)
+    let lang_list = [
+    {"id": "en", "title": "英语", "contexts": ["selection"], "parentId": "pickTranslate"},
+    {"id": "zh", "title": "汉语", "contexts": ["selection"], "parentId": "pickTranslate"}
+    ]
+
+    // let resp = await APIQuery('GET', 'languages', null)
     // 语言列表子菜单
-    for (lang of resp) {
-        let menuItem = {
+    for (lang of lang_list) {
+        /*let menuItem = {
             "id": lang.code,
             "title": lang.cname,
             "contexts": ["selection"],
             "parentId": "pickTranslate"
-        };
-        chrome.contextMenus.create(menuItem);
+        };*/
+        chrome.contextMenus.create(lang);
     }
 });
 
@@ -50,6 +54,10 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
         var transword = clickData.selectionText;  // 选中的内容
         var source_lang = 'auto';
         var target_lang = clickData.menuItemId;  // 被点击的菜单选项卡id
+
+        if(target_lang=="pickTranslate")
+            return;
+
         chrome.storage.sync.get('settings', async function (data) {
             //console.log("datasetting: " + !data.settings);
             if (!data.settings) {
@@ -75,7 +83,8 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
                                       format: "text", api_key: ak}),
                 headers: { "Content-Type": "application/json" }
             }).catch(function (err) {
-                //console.log(err);
+                console.log(err);
+
                 // 向content-scirpt发送错误显示消息
                 chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
                     chrome.tabs.sendMessage(tabs[0].id, {todo: "failed", message: err.message})
@@ -88,7 +97,8 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
             if (trans_json.error) {
                 showErrorNotification("服务器处理失败", "错误信息: " + trans_json.error);
             } else {
-                //console.log(trans_json.translatedText)
+                console.log(trans_json.translatedText)
+
                 // 弹出框中显示翻译结果
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     chrome.tabs.sendMessage(tabs[0].id, {todo: "translated", result: trans_json.translatedText })
