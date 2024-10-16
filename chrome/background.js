@@ -32,7 +32,8 @@ chrome.runtime.onInstalled.addListener(async function () {
 
     let lang_list = [
     {"id": "en", "title": "英语", "contexts": ["selection"], "parentId": "pickTranslate"},
-    {"id": "zh", "title": "汉语", "contexts": ["selection"], "parentId": "pickTranslate"}
+    {"id": "zh", "title": "汉语", "contexts": ["selection"], "parentId": "pickTranslate"},
+    {"id": "vi", "title": "越南语", "contexts": ["selection"], "parentId": "pickTranslate"}
     ]
 
     // let resp = await APIQuery('GET', 'languages', null)
