@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 翻译按钮事件
     document.getElementById('doTranslate').addEventListener('click', async function () {
         //console.log("sending msg")
-        ak = document.getElementById('api_key').value;
+
+        let ak = document.getElementById('api_key').value;
         if(typeof ak ==='undefined')
             ak = "";
 
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     getSettings(function (data) {
         let settings = [...document.querySelectorAll('.setting')]
-        for (s of settings) {
+        for (let s of settings) {
             s.value = data.settings[s.dataset['storename']]
         }
     });
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('saveSettings').addEventListener('click', function () {
         let settings = [...document.querySelectorAll('.setting')]  // 所有设置元素
         let collection = {};
-        for (s of settings) {
+        for (let s of settings) {
             if (!('storename' in s.dataset)) {  // input有data-storename属性
                 continue
             }
@@ -87,10 +88,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         let browserLang = navigator.language.split("-")[0];  // 浏览器语言
 
-        // console.log(typeof (resp))
-        // console.log(resp)
         // 添加语言列表选项
-        for (lang of resp) {
+        for (let lang of resp) {
             // 添加源语言项
             let opt = document.createElement('option');
             opt.value = lang.code
@@ -174,15 +173,15 @@ async function request_ad(){
     const res = await APIQuery('POST', 'request_ad', JSON.stringify({platform:"plugin"}));
     //console.log(res);
 
-    ad_id = res.ad_id;
-    type = res.type;
-    content = res.content;
-    url = res.url;
+    let ad_id = res.ad_id;
+    let type = res.type;
+    let content = res.content;
+    let ad_url = res.url;
 
     // 设置广告区域
     getSettings(function (data) {
-        server = data.settings['api-endpoint'];
-        url = server + "click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + url;
+        let server = data.settings['api-endpoint'];
+        let url = server + "click_ad?ad_id=" + ad_id + "&platform=plugin" + "&url=" + ad_url;
 
         // 翻译框和设置框2个广告区域
         document.getElementsByClassName("ad-container")[0].innerHTML = "<a href='" + url + "' target='_blank'>" + content + "</a>";
