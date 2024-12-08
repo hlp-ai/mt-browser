@@ -20,8 +20,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             api_key: ak
         });
 
-        //console.log("rcv'd ", resp);
-
         // 关闭翻译框
         window.close()
     })
@@ -29,18 +27,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 恢复网页按钮事件
     document.getElementById('goback').addEventListener('click', async function () {
         // console.log("sending msg")
-        // 向content-script发送页面恢复消息
-        function sendMessageToContentScript(message, callback) {
-            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, message, function (response) {
-                    if (callback) callback(response);
-                });
-            });
-        }
 
-        sendMessageToContentScript({ cmd: 'goback', value: '你好，我是popup！' }, function (response) {
-            console.log('来自content的回复：' + response);
-        });
+        let resp = chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                chrome.tabs.reload(tabs[0].id);
+            });
 
         // 关闭翻译框
         window.close();
