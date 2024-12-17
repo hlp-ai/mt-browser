@@ -113,9 +113,9 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
 chrome.runtime.onMessage.addListener(
 
     function (request, sender, sendResponse) {
-        //console.log('request service')
-        //console.log(request)
         if (request.action === "translate") {  // 来自注入代码的翻译消息
+            console.log('Get translation from server')
+
             // 修改页面文字显示方向，TODO: 补充RTL语言代码列表判断
             if (request.sl === "ar") {  // 源语言RTL，翻译结果要LTR
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -123,21 +123,20 @@ chrome.runtime.onMessage.addListener(
                 })
             }
 
-            //console.log('translate' + request)
             // 发送翻译消息给翻译服务器
-            let jsn = APIQuery('POST', 'translate',
+            APIQuery('POST', 'translate',
                 JSON.stringify({
                     q: request.text,
                     source: request.sl,
                     target: request.tl,
                     format: request.type,
-                    api_key: request.ak
-                })).then(function (jsn) {
-                    // sendResponse({ type: request.type, text: jsn.translatedText });
+                    api_key: request.ak}))
+                .then(function (jsn) {
                     if(jsn.error){
+                        console.log('Translation error: ' + jsn.error)
+
                         showErrorNotification("翻译失败", "错误信息: " + jsn.error);
                     }else{
-                        //console.log(jsn.translatedText)
                         sendResponse({type: request.type, text: jsn.translatedText});
                     }
                 })
@@ -146,8 +145,10 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (request.action === "inject") {  // 来自popup的翻译注入消息
-            chrome.tabs.query({ active: true }).then(function (tabId) {
-                //console.log(tabId)
+            console.log('Inject script for translation')
+
+            chrome.tabs.query({ active: true })
+            .then(function (tabId) {
                 // 在注入页面中执行翻译脚本doTranslate
                 chrome.scripting.executeScript(
                     {
@@ -156,18 +157,22 @@ chrome.runtime.onMessage.addListener(
                         args: [request.sl, request.tl, request.api_key],
                     },
                 );
-                sendResponse(null);
-            })
+                //sendResponse(null);
+                })
+            .then(sendResponse(null));
 
+            return true;
         }
 
         if (request.action === "detect-lang") {  // 语言检查请求，来自翻译页面函数
             chrome.i18n.detectLanguage(request.text).then(function (info) {
                 sendResponse(info)
             });
+
+            return true;
         }
 
-        return true
+        //return true;
     }
 
 );
@@ -180,18 +185,10 @@ function APIQuery(method, route, body) {
             fetch(data.settings['api-endpoint'] + route, {
                 method: method,
                 body: body,
-                headers: { "Content-Type": "application/json" }
-            }).then(function (res) {
-                res.json().then(function (jsn) {
-                    resolve(jsn)
-                }).catch(function (err) {
-                    reject(err)
-                    showErrorNotification("服务器处理失败", "错误信息: " + err);
-                })
-            }).catch(function (err) {
-                reject(err)
-                showErrorNotification("服务器连接失败", "错误信息: " + err);
-            });
+                headers: { "Content-Type": "application/json" }})
+            .then(response => response.json())
+            .then(jsn => resolve(jsn))
+            .catch(err => showErrorNotification("服务器连接失败", "错误信息: " + err));
         })
     })
 }
@@ -312,7 +309,7 @@ async function doTranslate(sl, tl, ak) {
             tl: tl,
             ak: ak
         });
-        // console.log(responses)
+
         return responses;
     }
 

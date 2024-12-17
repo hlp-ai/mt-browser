@@ -129,16 +129,10 @@ function APIQuery(method, route, body) {
             fetch(data.settings['api-endpoint'] + route, {
                 method: method,
                 body: body,
-                headers: { "Content-Type": "application/json" }
-            }).then(function (res) {
-                res.json().then(function (jsn) {
-                    resolve(jsn)
-                }).catch(function (err) {
-                    reject(err)
-                })
-            }).catch(function (err) {
-                reject(err)
-            });
+                headers: { "Content-Type": "application/json" }})
+            .then(response => response.json())
+            .then(jsn => resolve(jsn))
+            .catch(err => console.log(err));
         })
     })
 
