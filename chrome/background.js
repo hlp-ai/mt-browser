@@ -162,18 +162,9 @@ chrome.runtime.onMessage.addListener(
 
             return true;
         }
-
-        if (request.action === "detect-lang") {  // 语言检查请求，来自翻译页面函数
-            chrome.i18n.detectLanguage(request.text)
-            .then(info => sendResponse(info));
-
-            return true;
-        }
-
-        //return true;
     }
-
 );
+
 
 // 和服务器通信
 function APIQuery(method, route, body) {
@@ -258,42 +249,7 @@ async function doTranslate(sl, tl, ak) {
         // 寻找可翻译元素
         nodes = findtranslatableElements();
 
-        // 尽管服务器端可以自动识别源文本语言，但可能少量文本容易误识别，所以，这里请求浏览器进行语言识别
-        //if (sl == 'auto')
-        //    sl = await detectLanguage(nodes);
-
         translateNodes(nodes, sl, tl);  // 翻译节点集
-    }
-
-    // 源文本语言检测
-    async function detectLanguage(nodes) {
-        let langfreqmap = {};
-        for (node of nodes) {
-            // 请求浏览器检测文本语言
-            let resp = await chrome.runtime.sendMessage({ action: "detect-lang", text: node.innerText });
-            //console.log(resp);
-            if (resp.languages.length >= 1) {
-                let lang = resp.languages[0].language;
-                if (!langfreqmap[lang])
-                    langfreqmap[lang] = 0;
-
-                //weight each guess by length of text and certainty
-                langfreqmap[lang] += (node.innerText.length * (resp.languages[0].percentage / 100));
-            }
-        }
-        let detectedlang = '';
-        let detectscore = 0;
-        for (var key of Object.keys(langfreqmap)) {
-            if (langfreqmap[key] > detectscore) {
-                detectedlang = key;
-                detectscore = langfreqmap[key];
-            }
-        }
-
-        if (detectedlang == '')
-            detectLanguage = 'auto';
-
-        return detectedlang;
     }
 
     // 成批翻译, 通过background和服务器通信实现翻译
