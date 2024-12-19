@@ -131,15 +131,18 @@ chrome.runtime.onMessage.addListener(
                     target: request.tl,
                     format: request.type,
                     api_key: request.ak}))
-                .then(function (jsn) {
+                .then(jsn => sendResponse(jsn));
+                /*.then(function (jsn) {
                     if(jsn.error){
                         console.log('Translation error: ' + jsn.error)
 
                         showErrorNotification("翻译失败", "错误信息: " + jsn.error);
+
+                        sendResponse(null);
                     }else{
                         sendResponse({type: request.type, text: jsn.translatedText});
                     }
-                })
+                })*/
 
             return true;
         }
@@ -147,27 +150,22 @@ chrome.runtime.onMessage.addListener(
         if (request.action === "inject") {  // 来自popup的翻译注入消息
             console.log('Inject script for translation')
 
+            // 在注入页面中执行翻译脚本doTranslate
             chrome.tabs.query({ active: true })
-            .then(function (tabId) {
-                // 在注入页面中执行翻译脚本doTranslate
-                chrome.scripting.executeScript(
-                    {
-                        target: { tabId: tabId[0].id },
-                        func: doTranslate,
-                        args: [request.sl, request.tl, request.api_key],
-                    },
-                );
-                //sendResponse(null);
-                })
+            .then(tabId => chrome.scripting.executeScript(
+                {
+                    target: { tabId: tabId[0].id },
+                    func: doTranslate,
+                    args: [request.sl, request.tl, request.api_key],
+                }))
             .then(sendResponse(null));
 
             return true;
         }
 
         if (request.action === "detect-lang") {  // 语言检查请求，来自翻译页面函数
-            chrome.i18n.detectLanguage(request.text).then(function (info) {
-                sendResponse(info)
-            });
+            chrome.i18n.detectLanguage(request.text)
+            .then(info => sendResponse(info));
 
             return true;
         }
@@ -261,8 +259,8 @@ async function doTranslate(sl, tl, ak) {
         nodes = findtranslatableElements();
 
         // 尽管服务器端可以自动识别源文本语言，但可能少量文本容易误识别，所以，这里请求浏览器进行语言识别
-        if (sl == 'auto')
-            sl = await detectLanguage(nodes);
+        //if (sl == 'auto')
+        //    sl = await detectLanguage(nodes);
 
         translateNodes(nodes, sl, tl);  // 翻译节点集
     }
@@ -273,7 +271,7 @@ async function doTranslate(sl, tl, ak) {
         for (node of nodes) {
             // 请求浏览器检测文本语言
             let resp = await chrome.runtime.sendMessage({ action: "detect-lang", text: node.innerText });
-            console.log(resp);
+            //console.log(resp);
             if (resp.languages.length >= 1) {
                 let lang = resp.languages[0].language;
                 if (!langfreqmap[lang])
@@ -349,8 +347,13 @@ async function doTranslate(sl, tl, ak) {
         if (textRequests.length > 0) {
             // 成批翻译
             let textResponses = await translateBatch(textRequests.map(req => req.text), 'text', sl, tl);
+            //alert(textResponses);
+            if (textResponses.error) {
+                alert(textResponses.error);
+                return;
+            }
 
-            let texttranslations = textResponses.text;
+            let texttranslations = textResponses.translatedText;
             for (let i = 0; i < texttranslations.length; i++) {
                 let resp = texttranslations[i];
                 let req = textRequests[i];
@@ -367,8 +370,13 @@ async function doTranslate(sl, tl, ak) {
         if (htmlRequests.length > 0) {
             // 成批翻译
             let htmlResponses = await translateBatch(htmlRequests.map(req => req.text), 'html', sl, tl);
+            //alert(htmlResponses);
+            if (htmlResponses.error) {
+                alert(htmlResponses.error);
+                return;
+            }
 
-            let htmltranslations = htmlResponses.text;
+            let htmltranslations = htmlResponses.translatedText;
             for (let i = 0; i < htmltranslations.length; i++) {
                 let resp = htmltranslations[i];
                 let req = htmlRequests[i];
