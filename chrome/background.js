@@ -219,7 +219,7 @@ async function doTranslate(sl, tl, ak) {
     let __translationCache = {};  // 翻译缓存
 
     let resp = await translate(document.title, 'text', sl, tl)   // 翻译标题
-    document.title = resp.text
+    document.title = resp.translatedText
 
     // 处于性能原因，只翻译视窗中可见部分，当视窗改变时，重新扫描DOM进行翻译
     // document.addEventListener('scroll', translateDom);
