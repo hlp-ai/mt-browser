@@ -31,9 +31,9 @@ chrome.runtime.onInstalled.addListener(async function () {
     chrome.contextMenus.create(menuItem);
 
     let lang_list = [
-    {"id": "en", "title": "英语", "contexts": ["selection"], "parentId": "pickTranslate"},
-    {"id": "zh", "title": "汉语", "contexts": ["selection"], "parentId": "pickTranslate"},
-    {"id": "vi", "title": "越南语", "contexts": ["selection"], "parentId": "pickTranslate"}
+        {"id": "en", "title": "英语", "contexts": ["selection"], "parentId": "pickTranslate"},
+        {"id": "zh", "title": "汉语", "contexts": ["selection"], "parentId": "pickTranslate"},
+        {"id": "vi", "title": "越南语", "contexts": ["selection"], "parentId": "pickTranslate"}
     ]
 
     // let resp = await APIQuery('GET', 'languages', null)
@@ -306,6 +306,7 @@ async function doTranslate(sl, tl, ak) {
             //alert(textResponses);
             if (textResponses.error) {
                 alert(textResponses.error);
+                location.reload();
                 return;
             }
 
@@ -329,6 +330,7 @@ async function doTranslate(sl, tl, ak) {
             //alert(htmlResponses);
             if (htmlResponses.error) {
                 alert(htmlResponses.error);
+                location.reload();
                 return;
             }
 
